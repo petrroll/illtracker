@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { MoodProvider } from './context/MoodContext';
 import Navigation from './components/Navigation';
 import TrackPage from './pages/TrackPage';
