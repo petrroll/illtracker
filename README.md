@@ -9,7 +9,8 @@ A mobile-first Progressive Web App (PWA) built with React, TypeScript, and Vite 
 - 💾 **Local storage** - All data stored locally in your browser
 - 📝 **Optional notes** - Add context to your mood entries
 - ✏️ **Edit/Delete** - Modify or remove past entries
-- 🔄 **PWA features** - Installable, offline support, native app-like experience
+- � **Daily reminders** - Push notifications at your chosen time (2 PM by default)
+- �🔄 **PWA features** - Installable, offline support, native app-like experience
 - 🎨 **Beautiful UI** - Gradient backgrounds and glassmorphism design
 
 ## Getting Started
@@ -63,16 +64,21 @@ src/
 ├── components/          # Reusable components
 │   ├── Navigation.tsx   # App navigation
 │   ├── MoodSlider.tsx   # Mood input slider
-│   └── EditMoodModal.tsx # Edit entry modal
+│   ├── EditMoodModal.tsx # Edit entry modal
+│   └── NotificationSettings.tsx # Notification configuration
 ├── pages/               # Page components
 │   ├── TrackPage.tsx    # Main mood tracking page
-│   └── HistoryPage.tsx  # Mood history page
+│   ├── HistoryPage.tsx  # Mood history page
+│   └── SettingsPage.tsx # App settings page
 ├── context/             # React context
-│   └── MoodContext.tsx  # Mood state management
+│   ├── MoodContext.tsx  # Mood state management
+│   └── SettingsContext.tsx # App settings management
 ├── types/               # TypeScript types
-│   └── mood.ts         # Mood entry types
+│   ├── mood.ts         # Mood entry types
+│   └── settings.ts     # Settings and notification types
 ├── utils/               # Utility functions
-│   └── storage.ts      # LocalStorage utilities
+│   ├── storage.ts      # LocalStorage utilities
+│   └── notifications.ts # Push notification utilities
 └── main.tsx            # App entry point
 ```
 
@@ -83,6 +89,23 @@ src/
 3. **Save**: Click "Save Mood Entry" to store your entry
 4. **View history**: Navigate to the History page to see all your past entries
 5. **Edit/Delete**: Use the buttons on each entry to modify or remove them
+6. **Set up reminders**: Go to Settings to enable daily push notifications
+
+## Daily Notifications
+
+The app supports daily push notifications to remind you to track your mood:
+
+- **Default time**: 2:00 PM local time
+- **Customizable**: Change the reminder time in Settings
+- **Privacy**: Notifications are handled locally by your browser
+- **Requirements**: Works in modern browsers and PWA installations
+- **Setup**: Visit the Settings page to enable and configure reminders
+
+### Browser Support
+- ✅ Chrome/Edge (desktop & mobile)
+- ✅ Firefox (desktop & mobile)  
+- ✅ Safari (with limitations)
+- ❌ Internet Explorer
 
 ## Data Storage
 

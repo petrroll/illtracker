@@ -1,0 +1,101 @@
+.settings-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding: 1rem;
+}
+
+.settings-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: 6rem; /* Space for navigation */
+}
+
+.settings-page h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin: 0 0 2rem 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.settings-section {
+  margin: 1.5rem 0;
+}
+
+.app-info {
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.app-info h3 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+}
+
+.app-info p {
+  margin: 0.5rem 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.app-version {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.app-version small {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .settings-page {
+    padding: 0.5rem;
+  }
+  
+  .settings-page h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .app-info {
+    padding: 1rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .settings-page {
+    background: #1a252f;
+  }
+  
+  .settings-page h1 {
+    color: #ecf0f1;
+  }
+  
+  .app-info {
+    background: #2c3e50;
+  }
+  
+  .app-info h3 {
+    color: #ecf0f1;
+  }
+  
+  .app-info p {
+    color: #bdc3c7;
+  }
+  
+  .app-version {
+    border-top-color: #4a5f7a;
+  }
+  
+  .app-version small {
+    color: #95a5a6;
+  }
+}

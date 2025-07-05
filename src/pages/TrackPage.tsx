@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMood } from '../context/MoodContext';
+import { useSettings } from '../context/SettingsContext';
 import MoodSlider from '../components/MoodSlider';
 
 const TrackPage: React.FC = () => {
@@ -7,6 +9,7 @@ const TrackPage: React.FC = () => {
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addEntry } = useMood();
+  const { notificationSettings, notificationSupported } = useSettings();
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -86,6 +89,52 @@ const TrackPage: React.FC = () => {
           {isSubmitting ? 'Saving...' : 'Save Mood Entry'}
         </button>
       </div>
+      
+      {/* Notification prompt */}
+      {notificationSupported && !notificationSettings.enabled && (
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.1)',
+          padding: '1rem',
+          borderRadius: '12px',
+          marginTop: '1.5rem',
+          textAlign: 'center',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: 'white' }}>
+            📱 Get Daily Reminders
+          </h3>
+          <p style={{ 
+            margin: '0 0 1rem 0', 
+            fontSize: '0.9rem', 
+            color: 'rgba(255, 255, 255, 0.8)',
+            lineHeight: '1.4'
+          }}>
+            Enable notifications to get gentle daily reminders to track your mood
+          </p>
+          <Link 
+            to="/settings" 
+            style={{
+              display: 'inline-block',
+              padding: '0.5rem 1rem',
+              background: 'rgba(255, 255, 255, 0.2)',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '8px',
+              fontSize: '0.9rem',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+            }}
+          >
+            Set Up Reminders
+          </Link>
+        </div>
+      )}
       
       <div style={{ 
         textAlign: 'center', 

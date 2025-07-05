@@ -22,6 +22,12 @@ const Navigation: React.FC = () => {
             >
               History
             </Link>
+            <Link 
+              to="/settings" 
+              className={`nav-link ${location.pathname === '/settings' ? 'active' : ''}`}
+            >
+              Settings
+            </Link>
           </div>
         </div>
       </div>
