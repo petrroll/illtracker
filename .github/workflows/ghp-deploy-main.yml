@@ -48,11 +48,8 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Run data processor script
-        run: bun run ./src/data_processor.ts
-
       - name: Build index.html with Bun
-        run: bun build ./index.html --outdir=./dist
+        run: bun vite build
 
       - name: Prepare deployment with existing previews
         run: ./.github/scripts/prepare-deployment.sh main "" "$EXISTING_SITE_PATH"
