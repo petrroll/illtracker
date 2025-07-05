@@ -1,0 +1,102 @@
+import React, { useState } from 'react';
+import { useMood } from '../context/MoodContext';
+import MoodSlider from '../components/MoodSlider';
+
+const TrackPage: React.FC = () => {
+  const [currentMood, setCurrentMood] = useState(5);
+  const [note, setNote] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { addEntry } = useMood();
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    
+    // Add a small delay for better UX feedback
+    setTimeout(() => {
+      addEntry({
+        value: currentMood,
+        note: note.trim() || undefined,
+      });
+      
+      // Reset form
+      setNote('');
+      setCurrentMood(5);
+      setIsSubmitting(false);
+      
+      // Show success feedback
+      const button = document.querySelector('.btn-primary') as HTMLElement;
+      if (button) {
+        const originalText = button.textContent;
+        button.textContent = '✓ Saved!';
+        button.style.background = 'linear-gradient(45deg, #48c78e, #06d6a0)';
+        
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.style.background = 'linear-gradient(45deg, #ff6b6b, #feca57)';
+        }, 2000);
+      }
+    }, 300);
+  };
+
+  return (
+    <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
+      <div className="card">
+        <h2 style={{ textAlign: 'center', marginTop: 0 }}>
+          How are you feeling right now?
+        </h2>
+        
+        <MoodSlider value={currentMood} onChange={setCurrentMood} />
+        
+        <div className="form-group">
+          <label htmlFor="note" className="label">
+            Add a note (optional)
+          </label>
+          <textarea
+            id="note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="What's on your mind?"
+            className="input"
+            rows={3}
+            maxLength={200}
+            style={{ resize: 'vertical', minHeight: '80px' }}
+          />
+          {note.length > 0 && (
+            <div style={{ 
+              fontSize: '0.875rem', 
+              color: 'rgba(255, 255, 255, 0.6)', 
+              marginTop: '0.5rem' 
+            }}>
+              {note.length}/200 characters
+            </div>
+          )}
+        </div>
+        
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="btn btn-primary"
+          style={{ 
+            width: '100%', 
+            fontSize: '1.1rem',
+            opacity: isSubmitting ? 0.7 : 1,
+            cursor: isSubmitting ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {isSubmitting ? 'Saving...' : 'Save Mood Entry'}
+        </button>
+      </div>
+      
+      <div style={{ 
+        textAlign: 'center', 
+        marginTop: '2rem', 
+        color: 'rgba(255, 255, 255, 0.7)',
+        fontSize: '0.875rem'
+      }}>
+        Track your mood regularly to see patterns over time
+      </div>
+    </div>
+  );
+};
+
+export default TrackPage;
