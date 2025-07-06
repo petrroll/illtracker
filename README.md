@@ -93,19 +93,37 @@ src/
 
 ## Daily Notifications
 
-The app supports daily push notifications to remind you to track your mood:
+The app features a **robust notification system** with true background capabilities:
 
-- **Default time**: 2:00 PM local time
-- **Customizable**: Change the reminder time in Settings
-- **Privacy**: Notifications are handled locally by your browser
-- **Requirements**: Works in modern browsers and PWA installations
-- **Setup**: Visit the Settings page to enable and configure reminders
+- **Default time**: 2:00 PM local time (customizable)
+- **Background sync**: Works even when browser/app is closed (hourly checks)
+- **Service worker**: True background processing for notifications
+- **Smart sync**: Checks for missed notifications when app opens
+- **Catch-up notifications**: Shows reminders if you missed previous days
+- **Page visibility**: Triggers sync when returning to the app
+- **Offline capable**: Works without internet connection
+- **Progressive enhancement**: Falls back gracefully on unsupported browsers
 
-### Browser Support
-- ✅ Chrome/Edge (desktop & mobile)
-- ✅ Firefox (desktop & mobile)  
-- ✅ Safari (with limitations)
-- ❌ Internet Explorer
+### How It Works
+1. **Service Worker Background Sync**: Registers hourly background tasks that run even when app is closed
+2. **Periodic Background Sync**: Advanced Chrome feature for maximum reliability (where supported)
+3. **Immediate notifications**: Uses setTimeout for precise timing when app is open
+4. **Fallback intervals**: 1-hour intervals for browsers without background sync
+5. **Missed notification detection**: Checks on app startup for any missed reminders
+6. **Page visibility sync**: Triggers when switching back to the app tab
+
+### Background Sync Support
+- **Chrome/Edge (desktop & mobile)**: Full background sync + periodic sync
+- **Firefox (desktop & mobile)**: Basic background sync when PWA is installed
+- **Safari**: Limited support, fallback to app-open notifications
+- **Fallback**: Hourly checks when app is open (all browsers)
+
+### Technical Features
+- 🔄 **Service Worker**: True background processing
+- ⚡ **Background Sync API**: Works when app is closed
+- 🔁 **Periodic Background Sync**: Chrome's advanced scheduling (where available)
+- 📱 **PWA Integration**: Install for best background performance
+- 🛡️ **Progressive Enhancement**: Graceful degradation on older browsers
 
 ## Data Storage
 
