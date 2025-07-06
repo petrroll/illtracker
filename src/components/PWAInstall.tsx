@@ -35,11 +35,18 @@ const PWAInstall: React.FC = () => {
         setIsInstalled(true);
         return;
       }
+      
+      // Check if the app was installed through Chrome's Add to Home Screen
+      if (document.referrer.includes('android-app://')) {
+        setIsInstalled(true);
+        return;
+      }
     };
 
     checkIfInstalled();
 
     const handleBeforeInstallPrompt = (e: BeforeInstallPromptEvent) => {
+      console.log('PWA: beforeinstallprompt event fired');
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
       // Save the event for later use
@@ -47,12 +54,22 @@ const PWAInstall: React.FC = () => {
     };
 
     const handleAppInstalled = () => {
+      console.log('PWA: appinstalled event fired');
       setIsInstalled(true);
       setInstallPrompt(null);
     };
 
+    // Add debug logging
+    console.log('PWA: Setting up event listeners');
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Debug: Check if service worker is registered
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        console.log('PWA: Service Worker is ready:', registration);
+      });
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -85,9 +102,47 @@ const PWAInstall: React.FC = () => {
     }
   };
 
-  // Don't render if already installed or no install prompt available
-  if (isInstalled || !installPrompt) {
-    return null;
+  // Don't render if already installed
+  if (isInstalled) {
+    return (
+      <div className="pwa-install">
+        <h3>✅ App Installed</h3>
+        <p>Great! Mood Tracker is installed on your device.</p>
+      </div>
+    );
+  }
+
+  // Show manual installation instructions for iOS or if no install prompt
+  if (!installPrompt) {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    if (isIOS && isSafari) {
+      return (
+        <div className="pwa-install">
+          <h3>Install App on iOS</h3>
+          <p>To install Mood Tracker on your iPhone or iPad:</p>
+          <ol style={{ textAlign: 'left', paddingLeft: '1.5rem' }}>
+            <li>Tap the Share button <span style={{ fontSize: '1.2rem' }}>⬆️</span> in Safari</li>
+            <li>Scroll down and tap "Add to Home Screen"</li>
+            <li>Tap "Add" to install the app</li>
+          </ol>
+        </div>
+      );
+    }
+    
+    // For other browsers that don't support beforeinstallprompt
+    return (
+      <div className="pwa-install">
+        <h3>Install App</h3>
+        <p>To install Mood Tracker:</p>
+        <ul style={{ textAlign: 'left' }}>
+          <li><strong>Chrome/Edge:</strong> Look for the install button in the address bar</li>
+          <li><strong>Firefox:</strong> Check the three-dot menu for "Install"</li>
+          <li><strong>Safari:</strong> Use "Add to Home Screen" from the share menu</li>
+        </ul>
+      </div>
+    );
   }
 
   return (
