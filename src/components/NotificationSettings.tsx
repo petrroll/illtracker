@@ -22,12 +22,11 @@ const NotificationSettings: React.FC = () => {
       } else {
         const success = await enableDailyNotifications(tempTime);
         if (!success) {
-          alert('Failed to enable notifications. Please check your browser settings.');
+          console.error('Failed to enable notifications. Please check your browser settings.');
         }
       }
     } catch (error) {
       console.error('Error toggling notifications:', error);
-      alert('An error occurred while configuring notifications.');
     } finally {
       setIsLoading(false);
     }
@@ -92,21 +91,15 @@ const NotificationSettings: React.FC = () => {
           <p className="status-text">
             ✅ Daily reminders enabled for {tempTime}
           </p>
-          {notificationSettings.lastScheduled && (
-            <p className="last-scheduled">
-              Last scheduled: {new Date(notificationSettings.lastScheduled).toLocaleDateString()}
-            </p>
-          )}
         </div>
       )}
 
       <div className="notification-info">
         <h4>How it works:</h4>
         <ul>
-          <li>You'll receive a notification at your chosen time each day</li>
-          <li>Notifications only work when the app is installed or the browser is open</li>
-          <li>You can change the time anytime</li>
-          <li>Disable notifications anytime by toggling them off</li>
+          <li>⏰ Notifications trigger at your chosen time each day</li>
+          <li>📱 Works best when you keep the app tab open</li>
+          <li>🔧 Works without internet connection after initial setup</li>
         </ul>
       </div>
     </div>

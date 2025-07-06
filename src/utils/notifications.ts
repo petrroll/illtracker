@@ -1,208 +1,230 @@
-/**
- * Notifications utility for mood tracking reminders
- * Handles push notification permissions, scheduling, and delivery
- */
-
 import type { NotificationSettings } from '../types/settings';
 
-const NOTIFICATION_STORAGE_KEY = 'mood-notification-settings';
-const DEFAULT_NOTIFICATION_TIME = '14:00'; // 2 PM
+const STORAGE_KEY = 'mood-notification-settings';
+const DEFAULT_TIME = '14:00';
+let notificationTimeout: number | null = null;
 
-// Export the storage key for use in contexts
-export const getNotificationStorageKey = () => NOTIFICATION_STORAGE_KEY;
-
-/**
- * Check if the browser supports notifications
- */
 export const isNotificationSupported = (): boolean => {
-  return 'Notification' in window && 'serviceWorker' in navigator;
+  return 'Notification' in window;
 };
 
-/**
- * Request notification permission from the user
- */
-export const requestNotificationPermission = async (): Promise<NotificationPermission> => {
-  if (!isNotificationSupported()) {
-    throw new Error('Notifications are not supported in this browser');
-  }
-  
-  return await Notification.requestPermission();
-};
-
-/**
- * Get current notification settings from localStorage
- */
 export const getNotificationSettings = (): NotificationSettings => {
-  const stored = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+  const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
     try {
       return JSON.parse(stored);
-    } catch (error) {
-      console.error('Failed to parse notification settings:', error);
+    } catch {
+      // Fallback to default
     }
   }
-  
-  return {
-    enabled: false,
-    time: DEFAULT_NOTIFICATION_TIME,
-  };
+  return { enabled: false, time: DEFAULT_TIME };
 };
 
-/**
- * Save notification settings to localStorage
- */
-export const saveNotificationSettings = (settings: NotificationSettings): void => {
-  localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(settings));
-};
-
-/**
- * Calculate milliseconds until the next notification time
- */
-export const getMillisecondsUntilNotificationTime = (timeString: string): number => {
-  const now = new Date();
-  const [hours, minutes] = timeString.split(':').map(Number);
-  
-  const notificationTime = new Date();
-  notificationTime.setHours(hours, minutes, 0, 0);
-  
-  // If the time has already passed today, schedule for tomorrow
-  if (notificationTime <= now) {
-    notificationTime.setDate(notificationTime.getDate() + 1);
+const syncSettingsToServiceWorker = (settings: NotificationSettings): void => {
+  // Send settings to service worker
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'UPDATE_NOTIFICATION_SETTINGS',
+      settings
+    });
   }
-  
-  return notificationTime.getTime() - now.getTime();
 };
 
-/**
- * Show a notification to the user
- */
-export const showNotification = (title: string, options?: NotificationOptions): void => {
+export const saveNotificationSettings = (settings: NotificationSettings): void => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  syncSettingsToServiceWorker(settings);
+};
+
+export const showNotification = (title: string, body?: string): void => {
   if (Notification.permission === 'granted') {
     new Notification(title, {
+      body,
       icon: '/pwa-192x192.svg',
-      badge: '/pwa-192x192.svg',
-      requireInteraction: true,
-      ...options,
-    });
-  }
-};
-
-/**
- * Schedule the next daily notification
- */
-export const scheduleNextNotification = (settings: NotificationSettings): void => {
-  if (!settings.enabled || Notification.permission !== 'granted') {
-    return;
-  }
-  
-  // Clear any existing timeout
-  clearDailyNotificationTimeout();
-  
-  const delay = getMillisecondsUntilNotificationTime(settings.time);
-  
-  const timeoutId = window.setTimeout(() => {
-    showNotification('Time to track your mood! 😊', {
-      body: 'How are you feeling today? Take a moment to log your mood.',
-      tag: 'daily-mood-reminder',
+      tag: 'mood-reminder',
     });
     
-    // Schedule the next notification (24 hours later)
+    // Update last shown time
+    const settings = getNotificationSettings();
     const updatedSettings = {
       ...settings,
-      lastScheduled: new Date().toISOString(),
+      lastShown: new Date().toISOString()
     };
     saveNotificationSettings(updatedSettings);
-    scheduleNextNotification(updatedSettings);
-  }, delay);
-  
-  // Store the timeout ID for potential cleanup
-  sessionStorage.setItem('notificationTimeoutId', timeoutId.toString());
-};
-
-/**
- * Clear the current daily notification timeout
- */
-export const clearDailyNotificationTimeout = (): void => {
-  const timeoutId = sessionStorage.getItem('notificationTimeoutId');
-  if (timeoutId) {
-    clearTimeout(Number(timeoutId));
-    sessionStorage.removeItem('notificationTimeoutId');
   }
 };
 
-/**
- * Initialize notification system
- */
-export const initializeNotifications = async (): Promise<void> => {
-  if (!isNotificationSupported()) {
-    console.warn('Notifications are not supported in this browser');
-    return;
+export const shouldShowNotification = (settings: NotificationSettings): boolean => {
+  if (!settings.enabled) return false;
+  
+  const now = new Date();
+  const [targetHours, targetMinutes] = settings.time.split(':').map(Number);
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  
+  // Check if we're within 5 minutes of the target time
+  const isWithinTimeWindow = hours === targetHours && minutes <= targetMinutes + 5 && minutes >= targetMinutes;
+  
+  if (!isWithinTimeWindow) return false;
+  
+  // Check if we already showed today's notification
+  if (settings.lastShown) {
+    const lastShown = new Date(settings.lastShown);
+    const today = new Date();
+    today.setHours(targetHours, targetMinutes, 0, 0);
+    
+    // If we already showed notification today, don't show again
+    if (lastShown >= today) {
+      return false;
+    }
   }
   
+  return true;
+};
+
+export const checkForMissedNotification = (): void => {
   const settings = getNotificationSettings();
+  if (!settings.enabled || Notification.permission !== 'granted') return;
   
-  if (settings.enabled) {
-    if (Notification.permission === 'granted') {
-      scheduleNextNotification(settings);
-    } else if (Notification.permission === 'default') {
-      // Don't auto-request permission, let user enable it manually
-      console.log('Notification permission not granted');
+  const now = new Date();
+  const [targetHours, targetMinutes] = settings.time.split(':').map(Number);
+  
+  // Calculate today's notification time
+  const todayTarget = new Date();
+  todayTarget.setHours(targetHours, targetMinutes, 0, 0);
+  
+  // If notification time has passed today
+  if (now > todayTarget) {
+    // Check if we missed showing today's notification
+    if (!settings.lastShown) {
+      // Never shown any notification, show missed one
+      showNotification('Don\'t forget to track your mood! 😊', 'How are you feeling today?');
+      return;
+    }
+    
+    const lastShown = new Date(settings.lastShown);
+    
+    // If last shown was before today's target time, we missed it
+    if (lastShown < todayTarget) {
+      showNotification('Don\'t forget to track your mood! 😊', 'How are you feeling today?');
     }
   }
 };
 
-/**
- * Enable notifications with permission check
- */
-export const enableNotifications = async (time: string = DEFAULT_NOTIFICATION_TIME): Promise<boolean> => {
-  try {
-    const permission = await requestNotificationPermission();
-    
-    if (permission === 'granted') {
-      const settings: NotificationSettings = {
-        enabled: true,
-        time,
-        lastScheduled: new Date().toISOString(),
-      };
-      
-      saveNotificationSettings(settings);
-      scheduleNextNotification(settings);
-      return true;
-    }
-    
-    return false;
-  } catch (error) {
-    console.error('Failed to enable notifications:', error);
-    return false;
+export const enableNotifications = async (time: string = DEFAULT_TIME): Promise<boolean> => {
+  if (!isNotificationSupported()) return false;
+  
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    const settings = { enabled: true, time };
+    saveNotificationSettings(settings);
+    scheduleNextNotification(settings);
+    return true;
   }
+  return false;
 };
 
-/**
- * Disable notifications
- */
 export const disableNotifications = (): void => {
-  const settings: NotificationSettings = {
-    enabled: false,
-    time: getNotificationSettings().time,
-  };
-  
-  saveNotificationSettings(settings);
-  clearDailyNotificationTimeout();
+  const settings = getNotificationSettings();
+  saveNotificationSettings({ ...settings, enabled: false });
+  clearNotification();
 };
 
-/**
- * Update notification time
- */
 export const updateNotificationTime = (time: string): void => {
   const settings = getNotificationSettings();
-  const updatedSettings = {
-    ...settings,
-    time,
-  };
-  
+  const updatedSettings = { ...settings, time };
   saveNotificationSettings(updatedSettings);
   
   if (settings.enabled && Notification.permission === 'granted') {
     scheduleNextNotification(updatedSettings);
+  }
+};
+
+const scheduleNextNotification = (settings: NotificationSettings): void => {
+  if (!settings.enabled || Notification.permission !== 'granted') return;
+  
+  clearNotification();
+  
+  const [hours, minutes] = settings.time.split(':').map(Number);
+  const now = new Date();
+  const target = new Date();
+  target.setHours(hours, minutes, 0, 0);
+  
+  if (target <= now) {
+    target.setDate(target.getDate() + 1);
+  }
+  
+  const delay = target.getTime() - now.getTime();
+  
+  notificationTimeout = window.setTimeout(() => {
+    showNotification('Time to track your mood! 😊', 'How are you feeling today?');
+    scheduleNextNotification(settings); // Schedule tomorrow
+  }, delay);
+};
+
+const clearNotification = (): void => {
+  if (notificationTimeout) {
+    clearTimeout(notificationTimeout);
+    notificationTimeout = null;
+  }
+};
+
+export const initializeNotifications = async (): Promise<void> => {
+  const settings = getNotificationSettings();
+  
+  // Check for missed notifications first
+  if (settings.enabled && Notification.permission === 'granted') {
+    checkForMissedNotification();
+  }
+  
+  // Send current settings to service worker - try multiple ways to ensure delivery
+  if ('serviceWorker' in navigator) {
+    try {
+      // First, try to send to controller immediately
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'UPDATE_NOTIFICATION_SETTINGS',
+          settings
+        });
+      }
+      
+      // Also send when service worker becomes ready
+      const registration = await navigator.serviceWorker.ready;
+      if (registration.active) {
+        registration.active.postMessage({
+          type: 'UPDATE_NOTIFICATION_SETTINGS',
+          settings
+        });
+      }
+      
+      // Listen for new service worker installations and send settings
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'UPDATE_NOTIFICATION_SETTINGS',
+            settings: getNotificationSettings() // Get fresh settings
+          });
+        }
+      });
+      
+      // Listen for messages from service worker (e.g., when it shows a notification)
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'NOTIFICATION_SHOWN') {
+          // Update our local settings with the timestamp
+          const settings = getNotificationSettings();
+          const updatedSettings = {
+            ...settings,
+            lastShown: event.data.timestamp
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSettings));
+        }
+      });
+      
+    } catch (error) {
+      console.warn('Failed to sync settings with service worker:', error);
+    }
+  }
+  
+  if (settings.enabled && Notification.permission === 'granted') {
+    scheduleNextNotification(settings);
   }
 };

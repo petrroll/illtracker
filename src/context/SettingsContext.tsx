@@ -7,8 +7,7 @@ import {
   disableNotifications, 
   updateNotificationTime,
   getNotificationSettings,
-  isNotificationSupported,
-  getNotificationStorageKey
+  isNotificationSupported
 } from '../utils/notifications';
 
 interface SettingsContextType {
@@ -58,21 +57,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
   };
 
   useEffect(() => {
-    // Initialize notifications on app start
     initializeNotifications().catch(console.error);
-    
-    // Set up a listener for changes to notification settings from other sources
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === getNotificationStorageKey()) {
-        setNotificationSettings(getNotificationSettings());
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, []);
 
   const value = {

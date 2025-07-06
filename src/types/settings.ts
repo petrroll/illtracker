@@ -5,7 +5,7 @@
 export interface NotificationSettings {
   enabled: boolean;
   time: string; // HH:MM format
-  lastScheduled?: string; // ISO date string
+  lastShown?: string; // ISO date string of last notification shown
 }
 
 // Future settings types can be added here

@@ -173,6 +173,34 @@
   line-height: 1.4;
 }
 
+.sync-status {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid #4CAF50;
+}
+
+.sync-info {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.sync-status .sync-info {
+  color: #2e7d32;
+}
+
+/* Warning style for limited sync support */
+.sync-status:has(.sync-info:contains("⚠️")) {
+  border-left-color: #ff9800;
+}
+
+.sync-status:has(.sync-info:contains("⚠️")) .sync-info {
+  color: #f57c00;
+}
+
 /* Mobile responsive */
 @media (max-width: 480px) {
   .notification-settings {
