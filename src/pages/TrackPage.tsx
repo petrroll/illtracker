@@ -1,15 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useMood } from '../context/MoodContext';
 import { useSettings } from '../context/SettingsContext';
 import MoodSlider from '../components/MoodSlider';
 
 const TrackPage: React.FC = () => {
-  const [currentMood, setCurrentMood] = useState(5);
+  const { addEntry, entries } = useMood();
+  const { notificationSettings, notificationSupported } = useSettings();
+  
+  const [currentMood, setCurrentMood] = useState(5); // Default to 5, will be updated on initial load
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addEntry } = useMood();
-  const { notificationSettings, notificationSupported } = useSettings();
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Set initial mood value based on last recorded entry (only on first load)
+  useEffect(() => {
+    if (!hasInitialized) {
+      if (entries.length > 0) {
+        setCurrentMood(entries[0].value);
+      }
+      setHasInitialized(true);
+    }
+  }, [entries, hasInitialized]);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -23,7 +35,8 @@ const TrackPage: React.FC = () => {
       
       // Reset form
       setNote('');
-      setCurrentMood(5);
+      // Keep the current mood value as the new default (the value just saved)
+      // setCurrentMood remains at the value that was just saved
       setIsSubmitting(false);
       
       // Show success feedback
