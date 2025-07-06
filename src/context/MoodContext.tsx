@@ -26,7 +26,11 @@ interface MoodProviderProps {
 }
 
 export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
-  const [entries, setEntries] = useState<MoodEntry[]>([]);
+  // Initialize with actual data from storage immediately
+  const [entries, setEntries] = useState<MoodEntry[]>(() => {
+    const loadedEntries = getMoodEntries();
+    return loadedEntries.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  });
 
   const refreshEntries = () => {
     const loadedEntries = getMoodEntries();
@@ -52,10 +56,6 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
     deleteMoodEntry(id);
     refreshEntries();
   };
-
-  useEffect(() => {
-    refreshEntries();
-  }, []);
 
   const value = {
     entries,

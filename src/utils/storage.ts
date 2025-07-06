@@ -8,10 +8,11 @@ export const getMoodEntries = (): MoodEntry[] => {
     if (!stored) return [];
     
     const entries = JSON.parse(stored);
-    return entries.map((entry: any) => ({
+    const processedEntries = entries.map((entry: any) => ({
       ...entry,
       timestamp: new Date(entry.timestamp),
     }));
+    return processedEntries;
   } catch (error) {
     console.error('Error loading mood entries:', error);
     return [];
