@@ -1,5 +1,6 @@
 import React from 'react';
 import NotificationSettings from '../components/NotificationSettings';
+import PWAInstall from '../components/PWAInstall';
 import './SettingsPage.css';
 
 const SettingsPage: React.FC = () => {
@@ -10,6 +11,10 @@ const SettingsPage: React.FC = () => {
         
         <div className="settings-section">
           <NotificationSettings />
+        </div>
+        
+        <div className="settings-section">
+          <PWAInstall />
         </div>
         
         <div className="settings-section">
