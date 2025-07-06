@@ -16,12 +16,14 @@ export default defineConfig({
         name: 'Mood Tracker',
         short_name: 'MoodTracker',
         description: 'A mobile-first PWA for tracking your daily mood',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        theme_color: '#667eea',
+        background_color: '#667eea',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
-        scope: '/',
+        start_url: '/illtracker/',
+        scope: '/illtracker/',
+        lang: 'en',
+        categories: ['health', 'lifestyle', 'productivity'],
         icons: [
           {
             src: 'pwa-192x192.svg',
@@ -32,6 +34,24 @@ export default defineConfig({
             src: 'pwa-512x512.svg',
             sizes: '512x512',
             type: 'image/svg+xml'
+          },
+          {
+            src: 'pwa-192x192.svg',
+            sizes: '192x192',
+            type: 'image/svg+xml',
+            purpose: 'any'
+          },
+          {
+            src: 'pwa-192x192.svg',
+            sizes: '192x192',
+            type: 'image/svg+xml',
+            purpose: 'maskable'
+          },
+          {
+            src: 'pwa-512x512.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'any'
           }
         ]
       }
